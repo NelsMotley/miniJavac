@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState, useRef} from 'react';
 import './Screen.scss';
 import Dropdown from 'react-bootstrap/Dropdown';
+import axios from 'axios';
 
 function Screen() {
     const [text, setText] = useState('');
@@ -8,6 +9,9 @@ function Screen() {
     const inputRef = useRef(null);
     const terminalRef = useRef(null);
     const [terminalHistory, setTerminalHistory] = useState(["test"]);
+    const [fileOptions, setFileOptions] = useState(["factorial.java"]);
+
+    
  
     useEffect(() => {
         const handleFocus = () => {
@@ -43,6 +47,66 @@ function Screen() {
         }
     }, [terminalHistory, text]);
 
+    function compile(){
+        axios.get('http://127.0.0.1:5000/api/compile')
+        .then(response => {
+            if (response.data && response.data.typecheck !== undefined) {
+                setTerminalHistory(prev => [...prev, response.data.typecheck]);
+            } else {
+                setTerminalHistory(prev => [...prev, "Error: Unexpected response format"]);
+                console.error("Unexpected response format:", response.data);
+            }
+        })
+        .catch(error => {
+            console.error("Compilation error:", error);
+            setTerminalHistory(prev => [...prev, `Error: ${error.message}`]);
+        });
+    }
+
+    function read_asm(){
+        axios.get('http://127.0.0.1:5000/api/assembly')
+        .then(response => {
+            if (response.data && response.data.asm !== undefined) {
+                const lines = response.data.asm.split('\n');
+
+                lines.forEach((line, index) => {
+                    setTerminalHistory(prev => [...prev, line]);
+                });
+
+                
+            } else {
+                setTerminalHistory(prev => [...prev, "Error: Unexpected response format"]);
+                console.error("Unexpected response format:", response.data);
+            }
+        })
+        .catch(error => {
+            console.error("Compilation error:", error);
+            setTerminalHistory(prev => [...prev, `Error: ${error.message}`]);
+        });
+    }
+
+    function run(){
+        axios.get('http://127.0.0.1:5000/api/run')
+        .then(response => {
+            if (response.data && response.data.out !== undefined) {
+                const lines = response.data.out.split('\n');
+
+                lines.forEach((line, index) => {
+                    setTerminalHistory(prev => [...prev, line]);
+                });
+
+                
+            } else {
+                setTerminalHistory(prev => [...prev, "Error: Unexpected response format"]);
+                console.error("Unexpected response format:", response.data);
+            }
+        })
+        .catch(error => {
+            console.error("Compilation error:", error);
+            setTerminalHistory(prev => [...prev, `Error: ${error.message}`]);
+        });
+    }
+
    function handleCommand(text){
         if(!text.trim()){
             setTerminalHistory(prev => [...prev, ""]);
@@ -54,6 +118,23 @@ function Screen() {
         else if(text.startsWith("echo ")){
             setTerminalHistory(prev => [...prev, text.substring(4)]);
         }
+        else if(text === "compile"){
+            compile();
+            setFileOptions(prev => [prev, "out.s"]);
+        }
+        else if(text == "run"){
+            run();
+        }
+        else if(text.startsWith("read ")){
+            read_asm();
+        }
+        else if(text === "ls"){
+            let fileSting = "";
+            fileOptions.forEach((file) => {
+                fileSting += file + " | ";
+            });
+            setTerminalHistory(prev => [prev, fileSting]);
+        }
         else{
             setTerminalHistory(prev => [...prev, "Unrecognized command " + text])
         }
@@ -63,6 +144,8 @@ function Screen() {
             }
         }, 0);
    }
+
+   
 
     const handleKeyDown = (e) => {
         e.preventDefault();
