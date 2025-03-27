@@ -1,7 +1,46 @@
-.screen {
-    border: 2px solid black;
+.chassis{
     height: 100vh;
     width: 100vw;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background:  #4a5c47;
+    box-shadow: 
+    inset 0.25em 0.25em 8px rgba(255, 255, 255, 0.2), 
+    inset -0.25em -0.25em 8px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    
+}
+
+.chassis::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        linear-gradient(45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(255,255,255,0.05) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.05) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.05) 75%);
+    background-size: 4px 4px;
+    border-radius: 10px;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.screen {
+    border-radius: 4px;
+    z-index: 2;
+    border: 2px solid black;
+    height: 90%;
+    width: 90%;
+    box-shadow: 
+        0 0 5px rgba(0, 255, 0, 0.5),
+        inset 0 0 10px rgba(0, 0, 0, 0.8);
    
     margin-left: auto;
     margin-right: auto;
@@ -41,8 +80,10 @@
         .terminal-history {
             color: white;
             margin-bottom: 0;
+
            
             p {
+                white-space: pre;
                 margin: 0;
                 padding: 0;
                 line-height: 1;
@@ -87,15 +128,78 @@
     }
 }
 
+.led {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00ff00;
+    right: 60px;
+    top: 23px;
+    box-shadow: 0 0 5px #00ff00;
+    animation: blink 5s infinite alternate;
+}
+
+@keyframes blink {
+    0%, 95% { opacity: 1; }
+    96%, 100% { opacity: 0.5; }
+}
+
+.brand-name {
+    position: absolute;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: monospace;
+    font-size: 14px;
+    color: #ddd;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.7);
+    letter-spacing: 1px;
+}
+
+
+.vents {
+    position: absolute;
+    right: 100px;
+    top: 20px;
+    width: 40px;
+    height: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.vent {
+    width: 4px;
+    height: 10px;
+    background: #333;
+    border-radius: 1px;
+}
+
+.screw {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #444;
+    border: 1px solid #333;
+    box-shadow: inset 1px 1px 1px rgba(255,255,255,0.2);
+}
+
+.screw-1 { top: 10px; left: 10px; }
+.screw-2 { top: 10px; right: 10px; }
+.screw-3 { bottom: 10px; left: 10px; }
+.screw-4 { bottom: 10px; right: 10px; }
+
+
 .screen::after{
     margin-left: auto;
     margin-right: auto;
     display: flex;
     content: "";
     position: absolute;
-   
-    width: 100vw;
-    height: 100vh;
+  
+    height: 90%;
+    width: 90%;
     background: repeating-linear-gradient(
         0deg,
         rgba(0,0,0, 0.15),
@@ -103,5 +207,6 @@
         transparent 1px,
         transparent 2px
     );
+   
     pointer-events: none; 
 }
