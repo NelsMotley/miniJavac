@@ -9,12 +9,15 @@ function Screen() {
     const inputRef = useRef(null);
     const terminalRef = useRef(null);
     const [terminalHistory, setTerminalHistory] = useState([""]);
+    const [commandHistory, setCommandHistory] = useState([]);
     const [fileOptions, setFileOptions] = useState(["factorial", "bubble-sort", "quick-sort", "more-than-4", "binary-tree", "tree-visitor"]);
     const [currentFile, setCurrentFile] = useState("");
     const [currentASM, setCurrentASM] = useState("");
     const artAddedRef = useRef(false);
     const instructionsAddedRef = useRef(false);
+    const [historyIndex, setHistoryIndex] = useState(-1);
 
+    const apiUrl = "https://web-production-4fca9.up.railway.app/";
 
     const art = ([
         "           _       _     _                   ____ ",
@@ -127,10 +130,10 @@ function Screen() {
     }, [terminalHistory, text]);
 
     function compile(name){
-        axios.get('http://127.0.0.1:5000/api/compile/' + name)
+        axios.get(apiUrl + 'api/compile/' + name)
         .then(response => {
             if (response.data && response.data.typecheck !== undefined && response.data.asm !== undefined) {
-                setTerminalHistory(prev => [...prev, response.data.typecheck]);
+                setTerminalHistory(prev => [...prev, response.data.typecheck + " -> " + name + ".s"]);
                 setCurrentASM(response.data.asm);
             } else {
                 setTerminalHistory(prev => [...prev, "Error: Unexpected response format"]);
@@ -144,7 +147,7 @@ function Screen() {
     }
 
     function get_java(name){
-        axios.get('http://127.0.0.1:5000/api/java/' + name)
+        axios.get(apiUrl + 'api/java/' + name)
         .then(response => {
             if (response.data && response.data.java !== undefined) {
                 console.log(response.data.java);
@@ -164,7 +167,7 @@ function Screen() {
 
     function read_java(name){
 
-        axios.get('http://127.0.0.1:5000/api/java/' + name)
+        axios.get(apiUrl + 'api/java/' + name)
         .then(response => {
             if (response.data && response.data.java !== undefined) {
                 console.log(response.data.java);
@@ -176,6 +179,7 @@ function Screen() {
 
                 
             } else {
+                
                 setTerminalHistory(prev => [...prev, "Error: Unexpected response format"]);
                 console.error("Unexpected response format:", response.data);
             }
@@ -188,7 +192,7 @@ function Screen() {
     }
 
     function read_asm(){
-        axios.get('http://127.0.0.1:5000/api/assembly')
+        axios.get(apiUrl + 'api/assembly')
         .then(response => {
             if (response.data && response.data.asm !== undefined) {
                 const lines = response.data.asm.split('\n');
@@ -210,7 +214,7 @@ function Screen() {
     }
 
     function run(){
-        axios.get('http://127.0.0.1:5000/api/run/'+currentFile)
+        axios.get(apiUrl + 'api/run/'+currentFile)
         .then(response => {
             if (response.data && response.data.out !== undefined) {
                 const lines = response.data.out.split('\n');
@@ -309,10 +313,39 @@ function Screen() {
         } 
         else if(e.key === "Enter"){
             setTerminalHistory(prev => [...prev, "$> " + text])
+            setCommandHistory(prev => [text, ...prev ])
             setText('');
             handleCommand(text);
             setText('');
             
+        }
+        else if(e.key === "ArrowUp"){
+            if(text?.length === 0){
+                setHistoryIndex(-1);
+            }
+            if (commandHistory.length > 0) {
+                setHistoryIndex((prevIndex) => {
+                    const newIndex = (prevIndex === -1) 
+                        ? 0 
+                        : Math.min(prevIndex + 1, commandHistory.length - 1);
+                    
+                    setText(commandHistory[newIndex]);
+                    return newIndex;
+            });
+            }
+        }
+        else if(e.key === "ArrowDown"){
+            if (commandHistory.length > 0) {
+                setHistoryIndex((prevIndex) => {
+                    const newIndex = (prevIndex === -1) 
+                        ? -1 
+                        : Math.max(prevIndex - 1, 0);
+                    
+                        setText(newIndex >=0 ? commandHistory[newIndex] : '');
+                    return newIndex;
+                });
+            }
+        
         }
         else if(e.key.length === 1) {
             setText(prev => prev + e.key);
